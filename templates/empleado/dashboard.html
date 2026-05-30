@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard — {{ empleado.nombre }}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+
+  <style>
+    html {
+      overscroll-behavior: none;
+      background: linear-gradient(135deg, #0a1628 0%, #0f2847 50%, #0a1628 100%);
+    }
+    body {
+      background: linear-gradient(135deg, #0a1628 0%, #0f2847 50%, #0a1628 100%);
+      background-attachment: fixed;
+      min-height: 100vh;
+      margin: 0; padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      overscroll-behavior: none;
+    }
+
+    .fondo-animado { position:fixed; top:0; left:0; width:100%; height:100%; z-index:0; pointer-events:none; overflow:hidden; }
+    .circulo { position:absolute; border-radius:50%; animation:flotar 8s infinite ease-in-out; opacity:0.06; }
+    .circulo-1 { width:400px; height:400px; background:#2d7dd2; top:-100px; left:-100px; animation-delay:0s; }
+    .circulo-2 { width:300px; height:300px; background:#1d9e75; bottom:-80px; right:-80px; animation-delay:2s; }
+    .circulo-3 { width:200px; height:200px; background:#2d7dd2; top:40%; right:10%; animation-delay:4s; }
+    .circulo-4 { width:150px; height:150px; background:#ef9f27; bottom:20%; left:5%; animation-delay:6s; }
+    @keyframes flotar {
+      0%,100% { transform: translateY(0) scale(1); }
+      50%      { transform: translateY(-30px) scale(1.05); }
+    }
+
+    .navbar-custom { background: rgba(10,21,32,0.95); border-bottom:1px solid rgba(45,125,210,0.25); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); }
+    .btn-salir { border:1px solid rgba(45,125,210,0.4); color:#7f93a8; font-size:.8rem; border-radius:7px; padding:.3rem .85rem; text-decoration:none; display:inline-flex; align-items:center; gap:.3rem; transition:all 0.2s; }
+    .btn-salir:hover { background:rgba(45,125,210,0.15); border-color:#2d7dd2; color:#e8edf3; }
+    .barra-nav { height:3px; background:linear-gradient(90deg,#1d9e75,#2d7dd2,#7c3aed,#2d7dd2,#1d9e75); background-size:200% 100%; animation:mover-gradiente 4s linear infinite; }
+
+    .container { position:relative; z-index:1; }
+
+    .card {
+      background: rgba(10,21,32,0.6) !important;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(45,125,210,0.25) !important;
+      border-radius: 16px !important;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05) !important;
+      overflow: hidden;
+    }
+    .card::before {
+      content:''; display:block; height:3px;
+      background: linear-gradient(90deg, #1d9e75, #2d7dd2, #7c3aed, #2d7dd2, #1d9e75);
+      background-size: 200% 100%;
+      animation: mover-gradiente 4s linear infinite;
+    }
+    @keyframes mover-gradiente {
+      0%   { background-position: 0% 0%; }
+      100% { background-position: 200% 0%; }
+    }
+    .card-header {
+      background: rgba(10,21,32,0.5) !important;
+      border-bottom: 1px solid rgba(45,125,210,0.15) !important;
+      border-radius: 0 !important;
+      font-weight: 600;
+      font-size: .95rem;
+      color: #e8edf3 !important;
+    }
+    .card-body { background: transparent !important; }
+
+    .avatar-circle {
+      width:64px; height:64px; border-radius:50%;
+      background: linear-gradient(135deg, #1e6bbf, #2d7dd2);
+      border: 2px solid rgba(45,125,210,0.4);
+      color:#fff; font-size:1.5rem; font-weight:700;
+      display:flex; align-items:center; justify-content:center;
+      flex-shrink:0; box-shadow:0 0 20px rgba(45,125,210,0.3);
+    }
+
+    .info-label { font-size:.72rem; text-transform:uppercase; letter-spacing:.07em; color:#4d6070; font-weight:600; margin-bottom:2px; }
+    .info-value  { font-size:.95rem; font-weight:500; color:#e8edf3; }
+
+    .fw-bold { color:#e8edf3 !important; }
+    .text-muted { color:#7f93a8 !important; }
+    .fs-5 { color:#e8edf3 !important; }
+    .small { color:#7f93a8 !important; }
+    .text-dark { color:#e8edf3 !important; }
+    .text-success { color:#1d9e75 !important; }
+
+    #reloj { font-size:2.8rem; font-weight:700; color:#2d7dd2; letter-spacing:-1px; line-height:1; text-shadow:0 0 20px rgba(45,125,210,0.4); }
+    #fecha-hoy { font-size:.875rem; color:#4d6070; margin-top:4px; }
+
+    .estado-jornada { font-size:.8rem; font-weight:600; padding:5px 14px; border-radius:100px; }
+    .badge.bg-success { background:rgba(29,158,117,0.15) !important; color:#1d9e75 !important; border:1px solid rgba(29,158,117,0.3); }
+    .badge.bg-warning { background:rgba(239,159,39,0.15)  !important; color:#ef9f27 !important; border:1px solid rgba(239,159,39,0.3); }
+    .badge.bg-secondary.estado-jornada { background:rgba(45,125,210,0.1) !important; color:#7f93a8 !important; border:1px solid rgba(45,125,210,0.2); }
+    .badge.bg-primary { background:rgba(45,125,210,0.15) !important; color:#2d7dd2 !important; border:1px solid rgba(45,125,210,0.3); }
+    .badge.bg-success-subtle { background:rgba(29,158,117,0.15) !important; color:#1d9e75 !important; border:1px solid rgba(29,158,117,0.3) !important; }
+    .badge.bg-warning-subtle { background:rgba(239,159,39,0.15)  !important; color:#ef9f27 !important; border:1px solid rgba(239,159,39,0.3) !important; }
+    .badge.bg-danger-subtle  { background:rgba(226,75,74,0.15)   !important; color:#e24b4a !important; border:1px solid rgba(226,75,74,0.3)  !important; }
+
+    .btn-dark, .btn-secondary, .btn-danger, .btn-outline-secondary, .btn-outline-success {
+      border-radius: 10px !important;
+      font-weight: 600 !important;
+      padding: .65rem 1.2rem !important;
+      transition: all 0.3s !important;
+      border: none !important;
+      position: relative; overflow: hidden;
+    }
+    .btn-dark {
+      background: linear-gradient(135deg, #2d7dd2, #1e6bbf) !important;
+      color: #fff !important;
+      box-shadow: 0 4px 15px rgba(45,125,210,0.3) !important;
+    }
+    .btn-dark:hover:not(:disabled) { box-shadow:0 8px 25px rgba(45,125,210,0.45) !important; transform:translateY(-1px); }
+    .btn-danger {
+      background: linear-gradient(135deg, #e24b4a, #c03a39) !important;
+      color: #fff !important;
+      box-shadow: 0 4px 15px rgba(226,75,74,0.3) !important;
+    }
+    .btn-danger:hover:not(:disabled) { box-shadow:0 8px 25px rgba(226,75,74,0.45) !important; transform:translateY(-1px); }
+    .btn-secondary {
+      background: rgba(45,125,210,0.1) !important;
+      color: #7f93a8 !important;
+      border: 1px solid rgba(45,125,210,0.2) !important;
+    }
+    .btn-outline-secondary {
+      background: transparent !important;
+      color: #7f93a8 !important;
+      border: 1px solid rgba(45,125,210,0.2) !important;
+    }
+    .btn-outline-success {
+      background: linear-gradient(135deg, #1d9e75, #158a62) !important;
+      color: #fff !important;
+      box-shadow: 0 4px 15px rgba(29,158,117,0.3) !important;
+    }
+    .btn-outline-success:hover { box-shadow:0 8px 25px rgba(29,158,117,0.45) !important; transform:translateY(-1px); color:#fff !important; }
+
+    .table { color:#7f93a8 !important; }
+    .table thead th {
+      font-size:.72rem !important; text-transform:uppercase; letter-spacing:.07em;
+      color:#4d6070 !important; font-weight:600 !important;
+      background:rgba(10,21,32,0.4) !important;
+      border-bottom:1px solid rgba(45,125,210,0.15) !important;
+    }
+    .table tbody td { border-bottom:1px solid rgba(45,125,210,0.08) !important; color:#7f93a8; padding:.85rem 1rem; }
+    .table-hover tbody tr:hover td { background:rgba(45,125,210,0.06) !important; color:#e8edf3 !important; }
+
+    /* ── ESTILOS MODALES DE CONFIRMACIÓN ── */
+    .modal-confirmacion .modal-content {
+      background: #0f1f35;
+      border: 1px solid rgba(45,125,210,0.35);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    .modal-barra-top {
+      height: 3px;
+      background: linear-gradient(90deg,#1d9e75,#2d7dd2,#7c3aed,#2d7dd2,#1d9e75);
+      background-size: 200%;
+      animation: mover-gradiente 4s linear infinite;
+    }
+    .modal-icono-wrap {
+      width: 58px; height: 58px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1rem;
+    }
+    .modal-titulo-texto { color: #e8edf3; font-weight: 600; margin-bottom: .2rem; }
+    .modal-hora-texto   { font-size: 1.5rem; font-weight: 700; color: #2d7dd2; letter-spacing: -.5px; margin-bottom: .15rem; }
+    .modal-subtitulo    { color: #7f93a8; font-size: .82rem; margin-bottom: 1.3rem; }
+    .btn-modal-prim {
+      width: 100%; padding: .68rem; border-radius: 10px; border: none;
+      font-size: .93rem; font-weight: 600; cursor: pointer; color: #fff;
+      transition: all .2s;
+    }
+    .btn-modal-prim:disabled { opacity: .35; cursor: not-allowed; }
+    .btn-modal-sec {
+      width: 100%; padding: .62rem; border-radius: 10px; font-size: .88rem;
+      background: rgba(45,125,210,0.08); border: 1px solid rgba(45,125,210,0.2);
+      color: #7f93a8; cursor: pointer; transition: background .2s;
+    }
+    .btn-modal-sec:hover { background: rgba(45,125,210,0.15); }
+    .cedula-input {
+      width: 100%; padding: 11px 38px 11px 14px;
+      font-size: 1.05rem; font-weight: 500; letter-spacing: 3px; text-align: center;
+      background: rgba(10,21,32,0.7); border: 1px solid rgba(45,125,210,0.3);
+      border-radius: 10px; color: #e8edf3; outline: none; font-family: monospace;
+      transition: border-color .2s, box-shadow .2s; box-sizing: border-box;
+    }
+    .cedula-input::placeholder { letter-spacing: 1px; font-family: sans-serif; font-size: .82rem; color: #4d6070; }
+    .cedula-input.cedula-ok  { border-color: #1d9e75 !important; box-shadow: 0 0 0 3px rgba(29,158,117,0.15) !important; }
+    .cedula-input.cedula-err { border-color: #e24b4a !important; box-shadow: 0 0 0 3px rgba(226,75,74,0.15) !important; animation: shake-cedula .3s; }
+    @keyframes shake-cedula {
+      0%,100% { transform: translateX(0); }
+      25%     { transform: translateX(-6px); }
+      75%     { transform: translateX(6px); }
+    }
+    .cedula-hint { font-size: .76rem; min-height: 16px; margin-top: 5px; margin-bottom: .9rem; text-align: center; color: #4d6070; }
+
+    /* ── Select de sucursal ── */
+    .sucursal-label {
+      font-size: .72rem; text-transform: uppercase; letter-spacing: .07em;
+      color: #4d6070; font-weight: 600; text-align: left; display: block; margin-bottom: 5px;
+    }
+    .sucursal-select {
+      width: 100%; padding: 11px 14px; font-size: .93rem;
+      background: rgba(10,21,32,0.7); border: 1px solid rgba(45,125,210,0.3);
+      border-radius: 10px; color: #e8edf3; outline: none;
+      transition: border-color .2s, box-shadow .2s;
+      appearance: none; -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%234d6070' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 14px center;
+      cursor: pointer;
+    }
+    .sucursal-select:focus { border-color: #2d7dd2; box-shadow: 0 0 0 3px rgba(45,125,210,0.15); }
+    .sucursal-select option { background: #0f1f35; color: #e8edf3; }
+    .sucursal-select.sucursal-ok { border-color: #1d9e75 !important; box-shadow: 0 0 0 3px rgba(29,158,117,0.15) !important; }
+    .divisor-modal { border: none; border-top: 1px solid rgba(45,125,210,0.12); margin: 1rem 0; }
+  </style>
+</head>
+<body>
+
+<div class="fondo-animado">
+  <div class="circulo circulo-1"></div>
+  <div class="circulo circulo-2"></div>
+  <div class="circulo circulo-3"></div>
+  <div class="circulo circulo-4"></div>
+</div>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-custom px-3">
+  <div class="container-fluid">
+    <a class="navbar-brand d-flex align-items-center" href="#">
+      <img src="/static/logo.png" alt="Logo Empresa XYZ" style="height:60px;width:auto;max-width:150px;object-fit:contain;">
+    </a>
+    <div class="d-flex align-items-center gap-3">
+      <span class="d-flex align-items-center gap-2" style="color:#e8edf3;">
+        <i class="bi bi-person-circle" style="font-size:1.3rem;color:#2d7dd2;"></i>
+        <span class="fw-semibold" style="font-size:.9rem;">{{ empleado.nombre }} {{ empleado.apellido }}</span>
+      </span>
+      <a href="/logout" class="btn-salir">
+        <i class="bi bi-box-arrow-right"></i> Salir
+      </a>
+    </div>
+  </div>
+</nav>
+<div class="barra-nav"></div>
+
+<!-- MAIN -->
+<div class="container pb-5 pt-4">
+
+  <div class="mb-4">
+    <h4 class="fw-bold mb-1">Hola, {{ empleado.nombre }} 👋</h4>
+    <p class="text-muted mb-0">Bienvenido a tu panel. Aquí puedes ver tu perfil y registrar tu asistencia.</p>
+  </div>
+
+  <div class="row g-4">
+
+    <!-- PERFIL -->
+    <div class="col-md-6">
+      <div class="card h-100">
+        <div class="card-header py-3">
+          <i class="bi bi-person-badge text-primary me-2"></i>Mi Perfil
+        </div>
+        <div class="card-body">
+          <div class="d-flex align-items-center gap-3 mb-4">
+            <div class="avatar-circle">
+              {{ empleado.nombre[0] }}{{ empleado.apellido[0] }}
+            </div>
+            <div>
+              <div class="fw-bold fs-5">{{ empleado.nombre }} {{ empleado.apellido }}</div>
+              <div class="text-muted small">{{ empleado.departamento }}</div>
+            </div>
+          </div>
+          <div class="row g-3">
+            <div class="col-6">
+              <div class="info-label">Cédula</div>
+              <div class="info-value">{{ empleado.cedula }}</div>
+            </div>
+            <div class="col-6">
+              <div class="info-label">Departamento</div>
+              <div class="info-value">{{ empleado.departamento }}</div>
+            </div>
+            <div class="col-6">
+              <div class="info-label">Correo</div>
+              <div class="info-value">{{ empleado.email }}</div>
+            </div>
+            <div class="col-6">
+              <div class="info-label">Rol</div>
+              <div class="info-value">{{ empleado.rol | capitalize }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MARCAR ASISTENCIA -->
+    <div class="col-md-6">
+      <div class="card h-100">
+        <div class="card-header py-3">
+          <i class="bi bi-clock text-primary me-2"></i>Marcar Asistencia
+        </div>
+        <div class="card-body d-flex flex-column align-items-center justify-content-center text-center">
+
+          <div id="reloj">00:00:00</div>
+          <div id="fecha-hoy" class="mb-3"></div>
+
+          {% set r = asistencias | selectattr("fecha_entrada_1", "ne", none) | selectattr("fecha_entrada_1", "equalto", hoy) | list | first | default(none) %}
+
+          {% if not r %}
+            <span class="badge bg-secondary estado-jornada mb-3">
+              <i class="bi bi-dash-circle me-1"></i>Sin registro hoy
+            </span>
+            <div class="text-muted small mb-4">No has marcado entrada todavía.</div>
+            <div class="d-grid gap-2 w-100">
+              <button type="button" class="btn btn-dark w-100 fw-semibold"
+                onclick="abrirModalConfirmar('entrada', '/asistencia/entrada')">
+                <i class="bi bi-box-arrow-in-right me-2"></i>Marcar entrada &mdash; Turno 1
+              </button>
+              <button class="btn btn-outline-secondary fw-semibold" disabled>
+                <i class="bi bi-box-arrow-right me-2"></i>Marcar salida &mdash; Turno 1
+              </button>
+            </div>
+
+          {% elif r.hora_entrada_1 and not r.hora_salida_1 %}
+            <span class="badge bg-warning text-dark estado-jornada mb-3">
+              <i class="bi bi-activity me-1"></i>En jornada &mdash; Turno 1
+            </span>
+            <div class="text-muted small mb-4">
+              Entrada T1 a las <strong class="text-success">{{ r.hora_entrada_1.strftime('%H:%M') }}</strong>
+            </div>
+            <div class="d-grid gap-2 w-100">
+              <button class="btn btn-secondary fw-semibold" disabled>
+                <i class="bi bi-box-arrow-in-right me-2"></i>Entrada T1 registrada
+              </button>
+              <button type="button" class="btn btn-danger w-100 fw-semibold"
+                onclick="abrirModalConfirmar('salida', '/asistencia/salida', {{ r.sucursal_id }}, '{{ r.sucursal.nombre if r.sucursal else '' }}')">
+                <i class="bi bi-box-arrow-right me-2"></i>Marcar salida &mdash; Turno 1
+              </button>
+            </div>
+
+          {% elif r.hora_salida_1 and not r.hora_entrada_2 %}
+            <span class="badge bg-success estado-jornada mb-3">
+              <i class="bi bi-check-circle me-1"></i>Turno 1 completado
+            </span>
+            <div class="text-muted small mb-4">
+              T1: <strong class="text-dark">{{ r.hora_entrada_1.strftime('%H:%M') }}</strong>
+              &nbsp;&rarr;&nbsp;
+              <strong class="text-dark">{{ r.hora_salida_1.strftime('%H:%M') }}</strong>
+            </div>
+            <div class="d-grid gap-2 w-100">
+              <button type="button" class="btn btn-dark w-100 fw-semibold"
+                onclick="abrirModalConfirmar('entrada', '/asistencia/entrada2')">
+                <i class="bi bi-box-arrow-in-right me-2"></i>Marcar entrada &mdash; Turno 2
+              </button>
+              <button class="btn btn-outline-secondary fw-semibold" disabled>
+                <i class="bi bi-box-arrow-right me-2"></i>Marcar salida &mdash; Turno 2
+              </button>
+            </div>
+
+          {% elif r.hora_entrada_2 and not r.hora_salida_2 %}
+            <span class="badge bg-warning text-dark estado-jornada mb-3">
+              <i class="bi bi-activity me-1"></i>En jornada &mdash; Turno 2
+            </span>
+            <div class="text-muted small mb-4">
+              T1: <strong class="text-dark">{{ r.hora_entrada_1.strftime('%H:%M') }} &rarr; {{ r.hora_salida_1.strftime('%H:%M') }}</strong><br>
+              Entrada T2 a las <strong class="text-success">{{ r.hora_entrada_2.strftime('%H:%M') }}</strong>
+            </div>
+            <div class="d-grid gap-2 w-100">
+              <button class="btn btn-secondary fw-semibold" disabled>
+                <i class="bi bi-box-arrow-in-right me-2"></i>Entrada T2 registrada
+              </button>
+              <button type="button" class="btn btn-danger w-100 fw-semibold"
+                onclick="abrirModalConfirmar('salida', '/asistencia/salida2', {{ r.sucursal_id }}, '{{ r.sucursal.nombre if r.sucursal else '' }}')">
+                <i class="bi bi-box-arrow-right me-2"></i>Marcar salida &mdash; Turno 2
+              </button>
+            </div>
+
+          {% elif r.hora_salida_2 %}
+            <span class="badge bg-success estado-jornada mb-3">
+              <i class="bi bi-check-circle me-1"></i>Jornada completa
+            </span>
+            <div class="text-muted small mb-4">
+              T1: <strong class="text-dark">{{ r.hora_entrada_1.strftime('%H:%M') }} &rarr; {{ r.hora_salida_1.strftime('%H:%M') }}</strong><br>
+              T2: <strong class="text-dark">{{ r.hora_entrada_2.strftime('%H:%M') }} &rarr; {{ r.hora_salida_2.strftime('%H:%M') }}</strong>
+            </div>
+            <div class="d-grid gap-2 w-100">
+              <button class="btn btn-secondary fw-semibold" disabled>
+                <i class="bi bi-check2 me-2"></i>Jornada finalizada
+              </button>
+            </div>
+          {% endif %}
+
+        </div>
+      </div>
+    </div>
+
+        <!-- HISTORIAL -->
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header py-3 d-flex align-items-center justify-content-between">
+          <span><i class="bi bi-calendar-check text-primary me-2"></i>Historial de Asistencia</span>
+          <span class="badge bg-primary rounded-pill">
+            {{ empleado.asistencias | length }} registros
+          </span>
+        </div>
+        <div class="card-body p-0">
+          {% set registros = asistencias | sort(attribute='fecha_entrada_1', reverse=True) %}
+          {% if registros %}
+          <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+              <thead>
+                <tr>
+                  <th class="ps-4">Sucursal</th>
+                  <th>F. Entrada T1</th>
+                  <th>Entrada T1</th>
+                  <th>F. Salida T1</th>
+                  <th>Salida T1</th>
+                  <th>F. Entrada T2</th>
+                  <th>Entrada T2</th>
+                  <th>F. Salida T2</th>
+                  <th>Salida T2</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for r in registros[:10] %}
+                <tr>
+                  <td class="ps-4">{{ r.sucursal.nombre if r.sucursal else '—' }}</td>
+                  <td>{{ r.fecha_entrada_1.strftime('%d/%m/%Y') if r.fecha_entrada_1 else '—' }}</td>
+                  <td>
+                    {% if r.hora_entrada_1 %}
+                      <i class="bi bi-arrow-right-circle-fill text-success me-1"></i>
+                      {{ r.hora_entrada_1.strftime('%H:%M') }}
+                    {% else %}—{% endif %}
+                  </td>
+                  <td>{{ r.fecha_salida_1.strftime('%d/%m/%Y') if r.fecha_salida_1 else '—' }}</td>
+                  <td>
+                    {% if r.hora_salida_1 %}
+                      <i class="bi bi-arrow-left-circle-fill text-danger me-1"></i>
+                      {{ r.hora_salida_1.strftime('%H:%M') }}
+                    {% else %}—{% endif %}
+                  </td>
+                  <td>{{ r.fecha_entrada_2.strftime('%d/%m/%Y') if r.fecha_entrada_2 else '—' }}</td>
+                  <td>
+                    {% if r.hora_entrada_2 %}
+                      <i class="bi bi-arrow-right-circle-fill text-success me-1"></i>
+                      {{ r.hora_entrada_2.strftime('%H:%M') }}
+                    {% else %}—{% endif %}
+                  </td>
+                  <td>{{ r.fecha_salida_2.strftime('%d/%m/%Y') if r.fecha_salida_2 else '—' }}</td>
+                  <td>
+                    {% if r.hora_salida_2 %}
+                      <i class="bi bi-arrow-left-circle-fill text-danger me-1"></i>
+                      {{ r.hora_salida_2.strftime('%H:%M') }}
+                    {% else %}—{% endif %}
+                  </td>
+                  <td>
+                    {% if r.hora_entrada_1 and r.hora_salida_1 and r.hora_entrada_2 and r.hora_salida_2 %}
+                      <span class="badge bg-success-subtle text-success border border-success-subtle">Completo</span>
+                    {% elif r.hora_entrada_2 %}
+                      <span class="badge bg-warning-subtle text-warning border border-warning-subtle">Turno 2</span>
+                    {% elif r.hora_salida_1 %}
+                      <span class="badge bg-success-subtle text-success border border-success-subtle">T1 completo</span>
+                    {% elif r.hora_entrada_1 %}
+                      <span class="badge bg-warning-subtle text-warning border border-warning-subtle">En jornada</span>
+                    {% else %}
+                      <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Sin entrada</span>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="text-center py-5 text-muted">
+            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+            No hay registros de asistencia aún.
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- EXPORTAR -->
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header py-3">
+          <i class="bi bi-download text-primary me-2"></i>Exportar mis registros
+        </div>
+        <div class="card-body">
+          <p class="text-muted small mb-3">Descarga tus registros de asistencia personales.</p>
+          <div class="d-flex gap-3 flex-wrap">
+            <a href="/exportar/asistencia/excel?cedula={{ empleado.cedula }}"
+               class="btn btn-outline-success">
+              <i class="bi bi-file-earmark-excel me-2"></i>Descargar Excel
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer style="background:rgba(10,21,32,0.9);border-top:1px solid rgba(45,125,210,0.15);padding:.75rem 1.5rem;margin-top:2rem;">
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;">
+    <small style="color:#4d6070;font-size:.75rem;">
+      <i class="bi bi-building me-1"></i>Empresa XYZ &copy; 2026 — Todos los derechos reservados
+    </small>
+    <small style="color:#4d6070;font-size:.75rem;">
+      <i class="bi bi-geo-alt me-1"></i>Guayaquil, Ecuador
+    </small>
+  </div>
+</footer>
+
+
+<!-- ══════════════════════════════════════════════
+     MODAL 1 — Confirmar acción (¿entrada o salida?)
+     Aparece al hacer clic en cualquiera de los dos botones.
+     ══════════════════════════════════════════════ -->
+<div class="modal fade modal-confirmacion" id="modalConfirmar" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:400px;">
+    <div class="modal-content">
+      <div class="modal-barra-top"></div>
+      <div class="modal-body text-center py-4 px-4">
+
+        <div id="m1-icono" class="modal-icono-wrap">
+          <i id="m1-icono-i" style="font-size:1.5rem;"></i>
+        </div>
+        <h5 id="m1-titulo" class="modal-titulo-texto"></h5>
+        <div id="m1-hora" class="modal-hora-texto"></div>
+        <p class="modal-subtitulo">¿Deseas registrar esta acción?</p>
+
+        <div class="d-flex flex-column gap-2">
+          <button id="m1-btn-ok" class="btn-modal-prim" onclick="abrirModalCedula()">
+            <i class="bi bi-check2-circle me-1"></i>Confirmar
+          </button>
+          <button class="btn-modal-sec" data-bs-dismiss="modal">Cancelar</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- MODAL 2- VERIFICACIÓN CON CEDULA  -->
+<div class="modal fade modal-confirmacion" id="modalCedula" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:400px;">
+    <div class="modal-content">
+      <div class="modal-barra-top"></div>
+      <div class="modal-body text-center py-4 px-4">
+
+        <div class="modal-icono-wrap" style="background:rgba(45,125,210,0.12);border:1px solid rgba(45,125,210,0.35);">
+          <i class="bi bi-shield-lock" style="font-size:1.3rem;color:#2d7dd2;"></i>
+        </div>
+        <h5 class="modal-titulo-texto">Verificación de identidad</h5>
+        <p class="modal-subtitulo">Ingresa tu cédula para completar el registro</p>
+
+        <form id="cedula-form" method="post">
+          <input type="hidden" name="cedula_confirmacion" id="cedula-hidden"/>
+
+          <!-- Sucursal: select (entrada) o badge fijo (salida) -->
+          <input type="hidden" id="sucursal-fija-hidden" name="sucursal_id" value=""/>
+
+          <!-- Select visible solo en entrada -->
+          <div id="sucursal-wrap" style="margin-bottom:1rem;text-align:left;">
+            <label class="sucursal-label" for="sucursal-select">
+              <i class="bi bi-geo-alt me-1"></i>Sucursal
+            </label>
+            <select id="sucursal-select" name="sucursal_id_select" class="sucursal-select" onchange="validarFormulario()">
+              <option value="" disabled selected>Selecciona tu sucursal</option>
+              {% for s in sucursales %}
+              <option value="{{ s.id }}">{{ s.nombre }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Badge fijo visible solo en salida -->
+          <div id="sucursal-fija-info" style="display:none;margin-bottom:1rem;align-items:center;gap:10px;background:rgba(29,158,117,0.1);border:1px solid rgba(29,158,117,0.3);border-radius:10px;padding:10px 14px;">
+            <i class="bi bi-geo-alt-fill" style="color:#1d9e75;font-size:1.1rem;flex-shrink:0;"></i>
+            <div style="text-align:left;">
+              <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;color:#1d9e75;font-weight:600;">Sucursal registrada</div>
+              <div id="sucursal-fija-nombre" style="color:#e8edf3;font-size:.95rem;font-weight:500;"></div>
+            </div>
+            <i class="bi bi-lock-fill" style="color:#4d6070;font-size:.85rem;margin-left:auto;"></i>
+          </div>
+
+          <hr class="divisor-modal"/>
+
+          <!-- Cédula -->
+          <div style="text-align:left;margin-bottom:4px;">
+            <label class="sucursal-label" for="cedula-inp">
+              <i class="bi bi-person-vcard me-1"></i>Cédula de identidad
+            </label>
+          </div>
+          <div style="position:relative;margin-bottom:4px;">
+            <input id="cedula-inp"
+              class="cedula-input"
+              type="text"
+              inputmode="numeric"
+              maxlength="10"
+              placeholder="Número de cédula"
+              autocomplete="off"/>
+            <span id="cedula-chk" style="position:absolute;right:11px;top:50%;transform:translateY(-50%);font-size:1rem;display:none;"></span>
+          </div>
+          <div id="cedula-hint" class="cedula-hint"></div>
+
+          <div class="d-flex flex-column gap-2" style="margin-top:.5rem;">
+            <button type="submit" id="cedula-btn" class="btn-modal-prim" disabled>
+              <i class="bi bi-check2-circle me-1"></i>Registrar
+            </button>
+            <button type="button" class="btn-modal-sec" onclick="volverAModal1()">
+              <i class="bi bi-arrow-left me-1"></i>Volver
+            </button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  /* ── Reloj principal del dashboard ── */
+  function actualizarReloj() {
+    const ahora = new Date();
+    document.getElementById('reloj').textContent =
+      ahora.toLocaleTimeString('es-EC', { hour12: false });
+    document.getElementById('fecha-hoy').textContent =
+      ahora.toLocaleDateString('es-EC', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  }
+  actualizarReloj();
+  setInterval(actualizarReloj, 1000);
+
+  /* ── Variables globales de los modales ── */
+  let _modal1, _modal2, _tickModal = null, _accionActual = '', _sucursalFija = null, _sucursalNombre = '';
+
+  document.addEventListener('DOMContentLoaded', () => {
+    _modal1 = new bootstrap.Modal(document.getElementById('modalConfirmar'));
+    _modal2 = new bootstrap.Modal(document.getElementById('modalCedula'));
+  });
+
+  /* ════════════════════════════════════════
+     PASO 1 — Abrir Modal 1
+     Llamado desde los botones "Marcar entrada"
+     y "Marcar salida" mediante onclick.
+     tipo:   'entrada' | 'salida'
+     accion: ruta POST a la que se enviará el form
+     ════════════════════════════════════════ */
+  function abrirModalConfirmar(tipo, accion, sucursalId, sucursalNombre) {
+    _accionActual = accion;
+    _sucursalFija   = sucursalId   || null;
+    _sucursalNombre = sucursalNombre || '';
+    const esEntrada = tipo === 'entrada';
+
+    /* Icono y color según tipo */
+    document.getElementById('m1-icono').style.background = esEntrada
+      ? 'rgba(45,125,210,0.15)' : 'rgba(226,75,74,0.15)';
+    document.getElementById('m1-icono').style.border = esEntrada
+      ? '1px solid rgba(45,125,210,0.4)' : '1px solid rgba(226,75,74,0.4)';
+    document.getElementById('m1-icono-i').className = esEntrada
+      ? 'bi bi-box-arrow-in-right' : 'bi bi-box-arrow-right';
+    document.getElementById('m1-icono-i').style.color = esEntrada ? '#2d7dd2' : '#e24b4a';
+    document.getElementById('m1-titulo').textContent  = esEntrada ? 'Confirmar entrada' : 'Confirmar salida';
+
+    /* Color del botón confirmar */
+    const btnOk = document.getElementById('m1-btn-ok');
+    btnOk.style.background = esEntrada
+      ? 'linear-gradient(135deg,#2d7dd2,#1e6bbf)'
+      : 'linear-gradient(135deg,#e24b4a,#c03a39)';
+    btnOk.style.boxShadow = esEntrada
+      ? '0 4px 15px rgba(45,125,210,0.3)'
+      : '0 4px 15px rgba(226,75,74,0.3)';
+
+    /* Hora en tiempo real dentro del modal */
+    clearInterval(_tickModal);
+    const tick = () => {
+      document.getElementById('m1-hora').textContent =
+        new Date().toLocaleTimeString('es-EC', { hour12: false });
+    };
+    tick();
+    _tickModal = setInterval(tick, 1000);
+
+    /* Detener el tick al cerrar el modal */
+    document.getElementById('modalConfirmar').addEventListener('hidden.bs.modal',
+      () => clearInterval(_tickModal), { once: true });
+
+    _modal1.show();
+  }
+
+  /* ════════════════════════════════════════
+     PASO 2 — Al hacer clic en "Confirmar"
+     dentro del Modal 1: cerrar Modal 1
+     y abrir Modal 2 (cédula).
+     ════════════════════════════════════════ */
+  function abrirModalCedula() {
+    _modal1.hide();
+
+    /* Esperar a que Modal 1 termine de cerrarse antes de abrir Modal 2 */
+    document.getElementById('modalConfirmar').addEventListener('hidden.bs.modal', () => {
+      _resetCamposCedula();
+      _modal2.show();
+      /* Enfocar el input automáticamente */
+      document.getElementById('modalCedula').addEventListener('shown.bs.modal',
+        () => document.getElementById('cedula-inp').focus(), { once: true });
+    }, { once: true });
+  }
+
+  /* ════════════════════════════════════════
+     PASO 3 — Volver al Modal 1 desde Modal 2
+     ════════════════════════════════════════ */
+  function volverAModal1() {
+    _modal2.hide();
+    document.getElementById('modalCedula').addEventListener('hidden.bs.modal',
+      () => _modal1.show(), { once: true });
+  }
+
+  /* ════════════════════════════════════════
+     Limpiar y configurar el Modal 2 cada vez
+     que se abre: resetea sucursal y cédula.
+     ════════════════════════════════════════ */
+  function _resetCamposCedula() {
+    const esEntrada = _accionActual.includes('entrada');
+    const inp          = document.getElementById('cedula-inp');
+    const hint         = document.getElementById('cedula-hint');
+    const chk          = document.getElementById('cedula-chk');
+    const btn          = document.getElementById('cedula-btn');
+    const select       = document.getElementById('sucursal-select');
+    const wrapSucursal = document.getElementById('sucursal-wrap');
+    const sucursalFija = document.getElementById('sucursal-fija-info');
+    const sucursalHid  = document.getElementById('sucursal-fija-hidden');
+
+    /* ── Sucursal: select para entrada, fija para salida ── */
+    if (esEntrada) {
+      /* Mostrar selector, ocultar badge fijo */
+      wrapSucursal.style.display = 'block';
+      sucursalFija.style.display = 'none';
+      select.value = '';
+      select.className = 'sucursal-select';
+      sucursalHid.value = '';
+    } else {
+      /* Ocultar selector, mostrar sucursal fija */
+      wrapSucursal.style.display = 'none';
+      sucursalFija.style.display = 'flex';
+      sucursalFija.querySelector('#sucursal-fija-nombre').textContent = _sucursalNombre;
+      sucursalHid.value = _sucursalFija;
+    }
+
+    /* Limpiar cédula */
+    inp.value = '';
+    inp.className = 'cedula-input';
+    chk.style.display = 'none';
+    hint.textContent  = '';
+    hint.style.color  = '#4d6070';
+    btn.disabled = true;
+
+    /* Color y texto del botón */
+    btn.style.background = esEntrada
+      ? 'linear-gradient(135deg,#2d7dd2,#1e6bbf)'
+      : 'linear-gradient(135deg,#e24b4a,#c03a39)';
+    btn.style.boxShadow = esEntrada
+      ? '0 4px 15px rgba(45,125,210,0.3)'
+      : '0 4px 15px rgba(226,75,74,0.3)';
+    btn.innerHTML = `<i class="bi bi-check2-circle me-1"></i>${esEntrada ? 'Registrar entrada' : 'Registrar salida'}`;
+
+    /* Asignar ruta POST */
+    document.getElementById('cedula-form').action = _accionActual;
+
+    /* ── Validación combinada ──
+       Entrada: necesita select + cédula
+       Salida:  sucursal ya fija, solo necesita cédula */
+    let cedulaOk = false;
+
+    function validarFormulario() {
+      const sucursalOk = esEntrada ? select.value !== '' : true;
+      btn.disabled = !(sucursalOk && cedulaOk);
+      if (esEntrada) {
+        select.className = sucursalOk ? 'sucursal-select sucursal-ok' : 'sucursal-select';
+      }
+    }
+
+    window.validarFormulario = validarFormulario;
+
+    /* Al cambiar el select en entrada, sincronizar con el hidden */
+    select.onchange = () => {
+      sucursalHid.value = select.value;
+      validarFormulario();
+    };
+
+    /* Validación en tiempo real de la cédula */
+    inp.oninput = () => {
+      const val = inp.value.replace(/\D/g, '');
+      inp.value = val;
+
+      inp.className = 'cedula-input';
+      chk.style.display = 'none';
+      cedulaOk = false;
+
+      if (val.length === 0) {
+        hint.textContent = '';
+        validarFormulario();
+        return;
+      }
+      if (val.length < 10) {
+        hint.textContent = `${val.length}/10 dígitos`;
+        hint.style.color = '#4d6070';
+        validarFormulario();
+        return;
+      }
+
+      if (val === '{{ empleado.cedula }}') {
+        inp.classList.add('cedula-ok');
+        chk.textContent   = '✓';
+        chk.style.color   = '#1d9e75';
+        chk.style.display = 'inline';
+        hint.textContent  = 'Cédula verificada';
+        hint.style.color  = '#1d9e75';
+        document.getElementById('cedula-hidden').value = val;
+        cedulaOk = true;
+      } else {
+        inp.classList.add('cedula-err');
+        chk.textContent   = '✕';
+        chk.style.color   = '#e24b4a';
+        chk.style.display = 'inline';
+        hint.textContent  = 'Cédula incorrecta, intenta de nuevo';
+        hint.style.color  = '#e24b4a';
+        cedulaOk = false;
+      }
+      validarFormulario();
+    };
+
+    /* Confirmar con Enter solo si todo está válido */
+    inp.onkeydown = e => {
+      if (e.key === 'Enter' && !btn.disabled) {
+        document.getElementById('cedula-form').submit();
+      }
+    };
+  }
+</script>
+
+</body>
+</html>

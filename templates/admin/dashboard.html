@@ -1,0 +1,872 @@
+{% extends "base.html" %}
+
+{% block usuario %}{{ usuario.nombre ~ " " ~ usuario.apellido if usuario else "Administrador" }}{% endblock %}
+
+{% block contenido %}
+
+<style>
+  /* ── Pestañas ── */
+  .nav-tabs { border-bottom: 1px solid rgba(45,125,210,0.25); }
+  .nav-tabs .nav-link {
+    color: #7f93a8; border: none;
+    border-bottom: 2px solid transparent;
+    background: transparent; font-size: 0.88rem; font-weight: 500;
+    padding: 0.6rem 1.1rem; transition: color 0.2s, border-color 0.2s;
+  }
+  .nav-tabs .nav-link:hover { color: #2d7dd2; }
+  .nav-tabs .nav-link.active {
+    color: #2d7dd2; border-bottom: 2px solid #2d7dd2;
+    background: transparent; font-weight: 600;
+  }
+
+  /* ── Cards ── */
+  .card {
+    background: rgba(10,21,32,0.55);
+    border: 1px solid rgba(45,125,210,0.18);
+    border-radius: 14px; backdrop-filter: blur(10px);
+  }
+  .card-header {
+    background: rgba(10,21,32,0.7) !important;
+    border-bottom: 1px solid rgba(45,125,210,0.18);
+    border-radius: 14px 14px 0 0 !important;
+    color: #e8edf3 !important;
+  }
+
+  /* ── Tabla ── */
+  .table { color: #c5d0db; font-size: 0.88rem; }
+  .table thead th {
+    background: rgba(45,125,210,0.12); color: #7f93a8;
+    font-size: 0.75rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    border-color: rgba(45,125,210,0.15);
+  }
+  .table tbody tr { border-color: rgba(45,125,210,0.08); transition: background 0.15s; }
+  .table tbody tr:hover { background: rgba(45,125,210,0.06); }
+
+  /* ── Inputs ── */
+  .input-group-text {
+    background: rgba(10,21,32,0.7);
+    border-color: rgba(45,125,210,0.25); color: #4d6070;
+  }
+  .form-control, .form-select {
+    background: rgba(10,21,32,0.7);
+    border-color: rgba(45,125,210,0.25); color: #e8edf3;
+  }
+  .form-control:focus, .form-select:focus {
+    background: rgba(10,21,32,0.85); border-color: #2d7dd2;
+    box-shadow: 0 0 0 3px rgba(45,125,210,0.18); color: #e8edf3;
+  }
+  .form-control::placeholder { color: #4d6070; }
+  .form-label { color: #7f93a8; font-size: 0.8rem; font-weight: 500; }
+  .form-select option { background: #0f2847; color: #e8edf3; }
+
+  /* ── Botones ── */
+  .btn-primary-custom {
+    background: linear-gradient(135deg, #1d9e75, #2d7dd2);
+    border: none; color: #fff; font-weight: 600; font-size: 0.85rem;
+    padding: 0.5rem 1.1rem; border-radius: 8px;
+    transition: opacity 0.2s, transform 0.15s;
+  }
+  .btn-primary-custom:hover { opacity: 0.88; transform: translateY(-1px); color: #fff; }
+  .btn-agregar {
+    background: linear-gradient(135deg, #1d9e75, #2d7dd2);
+    border: none; color: #fff; font-weight: 700; font-size: 0.85rem;
+    padding: 0.42rem 1rem; border-radius: 8px;
+    transition: opacity 0.2s, transform 0.15s;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+  }
+  .btn-agregar:hover { opacity: 0.88; transform: translateY(-1px); color: #fff; }
+  .btn-outline-primary {
+    border-color: rgba(45,125,210,0.5); color: #2d7dd2; font-size: 0.78rem;
+  }
+  .btn-outline-primary:hover { background: rgba(45,125,210,0.15); border-color: #2d7dd2; color: #2d7dd2; }
+  .btn-outline-danger {
+    border-color: rgba(226,75,74,0.5); color: #e24b4a; font-size: 0.78rem;
+  }
+  .btn-outline-danger:hover { background: rgba(226,75,74,0.12); border-color: #e24b4a; color: #e24b4a; }
+  .btn-outline-warning {
+    border-color: rgba(239,159,39,0.5); color: #ef9f27; font-size: 0.78rem;
+  }
+  .btn-outline-warning:hover { background: rgba(239,159,39,0.12); border-color: #ef9f27; color: #ef9f27; }
+  .btn-outline-success {
+    border-color: rgba(29,158,117,0.5); color: #1d9e75; font-size: 0.78rem;
+  }
+  .btn-outline-success:hover { background: rgba(29,158,117,0.12); border-color: #1d9e75; color: #1d9e75; }
+
+  /* ── Badges ── */
+  .badge-admin {
+    background: rgba(45,125,210,0.2); color: #2d7dd2;
+    border: 1px solid rgba(45,125,210,0.35);
+    font-size: 0.72rem; padding: 0.3em 0.65em; border-radius: 6px;
+  }
+  .badge-empleado {
+    background: rgba(127,147,168,0.15); color: #7f93a8;
+    border: 1px solid rgba(127,147,168,0.3);
+    font-size: 0.72rem; padding: 0.3em 0.65em; border-radius: 6px;
+  }
+  .badge-activo {
+    background: rgba(29,158,117,0.15); color: #1d9e75;
+    border: 1px solid rgba(29,158,117,0.3);
+    font-size: 0.72rem; padding: 0.3em 0.65em; border-radius: 6px;
+  }
+  .badge-inactivo {
+    background: rgba(226,75,74,0.15); color: #e24b4a;
+    border: 1px solid rgba(226,75,74,0.3);
+    font-size: 0.72rem; padding: 0.3em 0.65em; border-radius: 6px;
+  }
+
+  /* ── Modales ── */
+  .modal-content {
+    background: #0d1f35; border: 1px solid rgba(45,125,210,0.25);
+    border-radius: 16px; color: #e8edf3;
+  }
+  .modal-header {
+    background: rgba(10,21,32,0.8) !important;
+    border-bottom: 1px solid rgba(45,125,210,0.18);
+    border-radius: 16px 16px 0 0; color: #e8edf3 !important;
+  }
+  .modal-footer { border-top: 1px solid rgba(45,125,210,0.18); }
+  .btn-close-white { filter: invert(1) brightness(2); }
+  .barra-modal {
+    height: 3px;
+    background: linear-gradient(90deg, #1d9e75, #2d7dd2, #7c3aed, #2d7dd2, #1d9e75);
+    background-size: 200% 100%; animation: mover-gradiente 4s linear infinite;
+    border-radius: 16px 16px 0 0;
+  }
+  @keyframes mover-gradiente {
+    0%   { background-position: 0% 0%; }
+    100% { background-position: 200% 0%; }
+  }
+
+  /* ── Log items ── */
+  .log-item {
+    background: rgba(45,125,210,0.06);
+    border: 1px solid rgba(45,125,210,0.15);
+    border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 0.5rem;
+  }
+  .log-accion {
+    font-size: 0.72rem; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.06em; color: #2d7dd2;
+  }
+  .log-detalle { font-size: 0.82rem; color: #c5d0db; margin-top: 2px; }
+  .log-fecha { font-size: 0.72rem; color: #4d6070; }
+</style>
+
+<!-- ══════════════════ PESTAÑAS ══════════════════ -->
+<ul class="nav nav-tabs mb-4" id="adminTabs" role="tablist">
+  <li class="nav-item" role="presentation">
+    <button class="nav-link active d-flex align-items-center gap-2"
+            data-bs-toggle="tab" data-bs-target="#lista" type="button">
+      <i class="bi bi-people"></i> Lista de Empleados
+    </button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link d-flex align-items-center gap-2"
+            data-bs-toggle="tab" data-bs-target="#horario" type="button">
+      <i class="bi bi-clock-history"></i> Control Horario
+    </button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link d-flex align-items-center gap-2"
+            data-bs-toggle="tab" data-bs-target="#sucursales" type="button">
+      <i class="bi bi-geo-alt"></i> Sucursales
+    </button>
+  </li>
+</ul>
+
+<div class="tab-content">
+
+  <!-- ══════ PESTAÑA 1: LISTA DE EMPLEADOS ══════ -->
+  <div class="tab-pane fade show active" id="lista" role="tabpanel">
+    <div class="card shadow-sm">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-people-fill"></i>
+          <span class="fw-semibold">Empleados Registrados</span>
+        </div>
+        <button class="btn-agregar" data-bs-toggle="modal" data-bs-target="#modalRegistrar">
+          <i class="bi bi-plus-lg"></i> Nuevo Empleado
+        </button>
+      </div>
+      <div class="card-body">
+        <div class="input-group mb-3">
+          <span class="input-group-text"><i class="bi bi-search"></i></span>
+          <input type="text" class="form-control" id="buscadorCedula" placeholder="Buscar por cédula...">
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle" id="tablaEmpleados">
+            <thead>
+              <tr>
+                <th><i class="bi bi-card-text me-1"></i>Cédula</th>
+                <th><i class="bi bi-person me-1"></i>Nombre</th>
+                <th><i class="bi bi-person me-1"></i>Apellido</th>
+                <th><i class="bi bi-envelope me-1"></i>Email</th>
+                <th><i class="bi bi-building me-1"></i>Departamento</th>
+                <th><i class="bi bi-shield me-1"></i>Rol</th>
+                <th><i class="bi bi-toggle-on me-1"></i>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for emp in empleados %}
+              <tr>
+                <td>{{ emp.cedula }}</td>
+                <td>{{ emp.nombre }}</td>
+                <td>{{ emp.apellido }}</td>
+                <td>{{ emp.email }}</td>
+                <td>{{ emp.departamento }}</td>
+                <td>
+                  {% if emp.rol == "admin" %}
+                  <span class="badge-admin"><i class="bi bi-shield-fill me-1"></i>Admin</span>
+                  {% else %}
+                  <span class="badge-empleado"><i class="bi bi-person-fill me-1"></i>Empleado</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if emp.activo %}
+                  <span class="badge-activo"><i class="bi bi-check-circle me-1"></i>Activo</span>
+                  {% else %}
+                  <span class="badge-inactivo"><i class="bi bi-x-circle me-1"></i>Inactivo</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <div class="d-flex gap-1 flex-wrap">
+                    <button class="btn btn-sm btn-outline-primary"
+                            onclick="abrirModalEditar('{{ emp.cedula }}','{{ emp.nombre }}','{{ emp.apellido }}','{{ emp.email }}','{{ emp.departamento }}','{{ emp.rol }}')">
+                      <i class="bi bi-pencil"></i> Editar
+                    </button>
+                    {% if emp.activo %}
+                    <a href="/web/empleado/baja/{{ emp.cedula }}"
+                       class="btn btn-sm btn-outline-danger"
+                       onclick="return confirm('¿Dar de baja a {{ emp.nombre }} {{ emp.apellido }}?')">
+                      <i class="bi bi-person-dash"></i> Dar de baja
+                    </a>
+                    {% else %}
+                    <a href="/web/empleado/reactivar/{{ emp.cedula }}"
+                       class="btn btn-sm btn-outline-success"
+                       onclick="return confirm('¿Reactivar a {{ emp.nombre }} {{ emp.apellido }}?')">
+                      <i class="bi bi-person-check"></i> Reactivar
+                    </a>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ PESTAÑA 2: CONTROL HORARIO ══════ -->
+  <div class="tab-pane fade" id="horario" role="tabpanel">
+    <div class="card shadow-sm">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-clock-history"></i>
+          <span class="fw-semibold">Control Horario</span>
+        </div>
+        <a href="/exportar/asistencia/excel/admin"
+           class="btn-agregar"
+           style="background:linear-gradient(135deg,#1d9e75,#2d7dd2);text-decoration:none;">
+          <i class="bi bi-file-earmark-excel-fill"></i> Exportar Excel
+        </a>
+      </div>
+      <div class="card-body">
+        <div class="input-group mb-3">
+          <span class="input-group-text"><i class="bi bi-search"></i></span>
+          <input type="text" class="form-control" id="buscadorAsistencia" placeholder="Buscar por cédula...">
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle" id="tablaAsistencia">
+            <thead>
+              <tr>
+                <th><i class="bi bi-person me-1"></i>Empleado</th>
+                <th><i class="bi bi-card-text me-1"></i>Cédula</th>
+                <th><i class="bi bi-geo-alt me-1"></i>Sucursal</th>
+                <th><i class="bi bi-calendar-event me-1"></i>F. Entrada T1</th>
+                <th><i class="bi bi-box-arrow-in-right me-1"></i>H. Entrada T1</th>
+                <th><i class="bi bi-calendar-event me-1"></i>F. Salida T1</th>
+                <th><i class="bi bi-box-arrow-right me-1"></i>H. Salida T1</th>
+                <th><i class="bi bi-calendar-event me-1"></i>F. Entrada T2</th>
+                <th><i class="bi bi-box-arrow-in-right me-1"></i>H. Entrada T2</th>
+                <th><i class="bi bi-calendar-event me-1"></i>F. Salida T2</th>
+                <th><i class="bi bi-box-arrow-right me-1"></i>H. Salida T2</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for reg in asistencias %}
+              <tr>
+                <td><span class="fw-semibold" style="color:#052246;">{{ reg.empleado.nombre }} {{ reg.empleado.apellido }}</span></td>
+                <td><span style="color:#052246;font-size:0.82rem;">{{ reg.cedula_empleado }}</span></td>
+                <td>
+                  {% if reg.sucursal %}
+                  <span style="background:rgba(45,125,210,0.12);color:#2d7dd2;border:1px solid rgba(45,125,210,0.25);padding:0.2em 0.6em;border-radius:6px;font-size:0.78rem;">
+                    <i class="bi bi-geo-alt-fill me-1"></i>{{ reg.sucursal.nombre }}
+                  </span>
+                  {% else %}<span style="color:#4d6070;">—</span>{% endif %}
+                </td>
+                {# ── Turno 1 ── #}
+                <td><span style="color:#052246;font-size:0.82rem;">{{ reg.fecha_entrada_1.strftime('%d/%m/%Y') if reg.fecha_entrada_1 else "—" }}</span></td>
+                <td>
+                  {% if reg.hora_entrada_1 %}
+                  <span style="color:#1d9e75;font-weight:600;">
+                    <i class="bi bi-arrow-right-circle-fill me-1"></i>{{ reg.hora_entrada_1.strftime('%H:%M:%S') }}
+                  </span>
+                  {% else %}<span style="color:#4d6070;">—</span>{% endif %}
+                </td>
+                <td><span style="color:#052246;font-size:0.82rem;">{{ reg.fecha_salida_1.strftime('%d/%m/%Y') if reg.fecha_salida_1 else "—" }}</span></td>
+                <td>
+                  {% if reg.hora_salida_1 %}
+                  <span style="color:#e24b4a;font-weight:600;">
+                    <i class="bi bi-arrow-left-circle-fill me-1"></i>{{ reg.hora_salida_1.strftime('%H:%M:%S') }}
+                  </span>
+                  {% else %}<span style="color:#4d6070;">—</span>{% endif %}
+                </td>
+                {# ── Turno 2 ── #}
+                <td><span style="color:#052246;font-size:0.82rem;">{{ reg.fecha_entrada_2.strftime('%d/%m/%Y') if reg.fecha_entrada_2 else "—" }}</span></td>
+                <td>
+                  {% if reg.hora_entrada_2 %}
+                  <span style="color:#1d9e75;font-weight:600;">
+                    <i class="bi bi-arrow-right-circle-fill me-1"></i>{{ reg.hora_entrada_2.strftime('%H:%M:%S') }}
+                  </span>
+                  {% else %}<span style="color:#4d6070;">—</span>{% endif %}
+                </td>
+                <td><span style="color:#052246;font-size:0.82rem;">{{ reg.fecha_salida_2.strftime('%d/%m/%Y') if reg.fecha_salida_2 else "—" }}</span></td>
+                <td>
+                  {% if reg.hora_salida_2 %}
+                  <span style="color:#e24b4a;font-weight:600;">
+                    <i class="bi bi-arrow-left-circle-fill me-1"></i>{{ reg.hora_salida_2.strftime('%H:%M:%S') }}
+                  </span>
+                  {% else %}<span style="color:#4d6070;">—</span>{% endif %}
+                </td>
+                <td>
+                  <div class="d-flex gap-1">
+                    <button class="btn btn-sm btn-outline-primary"
+                            onclick="abrirModalEditarAsistencia(
+                              {{ reg.id }},
+                              '{{ reg.fecha_entrada_1 or '' }}','{{ reg.hora_entrada_1.strftime('%H:%M') if reg.hora_entrada_1 else '' }}',
+                              '{{ reg.fecha_salida_1 or '' }}','{{ reg.hora_salida_1.strftime('%H:%M') if reg.hora_salida_1 else '' }}',
+                              '{{ reg.fecha_entrada_2 or '' }}','{{ reg.hora_entrada_2.strftime('%H:%M') if reg.hora_entrada_2 else '' }}',
+                              '{{ reg.fecha_salida_2 or '' }}','{{ reg.hora_salida_2.strftime('%H:%M') if reg.hora_salida_2 else '' }}',
+                              '{{ reg.sucursal_id or '' }}'
+                            )">
+                      <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-warning"
+                            onclick="verHistorial({{ reg.id }})">
+                      <i class="bi bi-clock-history"></i>
+                    </button>
+                    <a href="/web/asistencia/eliminar/{{ reg.id }}"
+                       class="btn btn-sm btn-outline-danger"
+                       onclick="return confirm('¿Eliminar este registro? La acción quedará en el log.')">
+                      <i class="bi bi-trash"></i>
+                    </a>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ PESTAÑA 3: SUCURSALES ══════ -->
+  <div class="tab-pane fade" id="sucursales" role="tabpanel">
+    <div class="card shadow-sm">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-geo-alt-fill"></i>
+          <span class="fw-semibold">Sucursales</span>
+        </div>
+        <button class="btn-agregar" data-bs-toggle="modal" data-bs-target="#modalRegistrarSucursal">
+          <i class="bi bi-plus-lg"></i> Nueva Sucursal
+        </button>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead>
+              <tr>
+                <th><i class="bi bi-hash me-1"></i>ID</th>
+                <th><i class="bi bi-geo-alt me-1"></i>Nombre</th>
+                <th><i class="bi bi-toggle-on me-1"></i>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for suc in sucursales %}
+              <tr>
+                <td>{{ suc.id }}</td>
+                <td>{{ suc.nombre }}</td>
+                <td>
+                  {% if suc.activo %}
+                  <span class="badge-activo"><i class="bi bi-check-circle me-1"></i>Activa</span>
+                  {% else %}
+                  <span class="badge-inactivo"><i class="bi bi-x-circle me-1"></i>Inactiva</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <div class="d-flex gap-1">
+                    <button class="btn btn-sm btn-outline-primary"
+                            onclick="abrirModalEditarSucursal({{ suc.id }}, '{{ suc.nombre }}')">
+                      <i class="bi bi-pencil"></i> Editar
+                    </button>
+                    {% if suc.activo %}
+                    <a href="/web/sucursal/desactivar/{{ suc.id }}"
+                       class="btn btn-sm btn-outline-danger"
+                       onclick="return confirm('¿Desactivar la sucursal {{ suc.nombre }}?')">
+                      <i class="bi bi-slash-circle"></i> Desactivar
+                    </a>
+                    {% else %}
+                    <a href="/web/sucursal/activar/{{ suc.id }}"
+                       class="btn btn-sm btn-outline-success"
+                       onclick="return confirm('¿Activar la sucursal {{ suc.nombre }}?')">
+                      <i class="bi bi-check-circle"></i> Activar
+                    </a>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- fin tab-content -->
+
+
+<!-- ══════ MODAL REGISTRAR EMPLEADO ══════ -->
+<div class="modal fade" id="modalRegistrar" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="barra-modal"></div>
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-person-plus-fill me-2" style="color:#1d9e75;"></i>Nuevo Empleado</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form action="/web/empleado/registrar" method="post">
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label"><i class="bi bi-card-text me-1"></i>Cédula</label>
+              <input type="text" class="form-control" name="cedula" placeholder="0912345678" maxlength="10" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label"><i class="bi bi-envelope me-1"></i>Email</label>
+              <input type="email" class="form-control" name="email" placeholder="correo@empresa.com" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label"><i class="bi bi-person me-1"></i>Nombre</label>
+              <input type="text" class="form-control" name="nombre" placeholder="Juan" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label"><i class="bi bi-person me-1"></i>Apellido</label>
+              <input type="text" class="form-control" name="apellido" placeholder="Pérez" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label"><i class="bi bi-lock me-1"></i>Contraseña</label>
+              <input type="password" class="form-control" name="contrasena" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label"><i class="bi bi-building me-1"></i>Departamento</label>
+              <select class="form-select" name="departamento" required>
+                <option value="" disabled selected>Seleccionar...</option>
+                <option value="TI">TI</option>
+                <option value="Ventas">Ventas</option>
+                <option value="Recursos Humanos">Recursos Humanos</option>
+                <option value="Finanzas">Finanzas</option>
+                <option value="Operaciones">Operaciones</option>
+                <option value="Marketing">Marketing</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label"><i class="bi bi-shield me-1"></i>Rol</label>
+              <select class="form-select" name="rol" required>
+                <option value="" disabled selected>Seleccionar...</option>
+                <option value="admin">Administrador</option>
+                <option value="empleado">Empleado</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="bi bi-x-circle me-1"></i>Cancelar
+          </button>
+          <button type="submit" class="btn-primary-custom">
+            <i class="bi bi-save me-1"></i>Guardar Empleado
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ MODAL EDITAR EMPLEADO ══════ -->
+<div class="modal fade" id="modalEditar" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="barra-modal"></div>
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-pencil-fill me-2" style="color:#2d7dd2;"></i>Editar Empleado</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="formEditar" method="post">
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label"><i class="bi bi-card-text me-1"></i>Cédula</label>
+              <input type="text" class="form-control" id="modalCedula" disabled>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label"><i class="bi bi-person me-1"></i>Nombre</label>
+              <input type="text" class="form-control" name="nombre" id="modalNombre" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label"><i class="bi bi-person me-1"></i>Apellido</label>
+              <input type="text" class="form-control" name="apellido" id="modalApellido" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label"><i class="bi bi-envelope me-1"></i>Email</label>
+              <input type="email" class="form-control" name="email" id="modalEmail" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label"><i class="bi bi-lock me-1"></i>Contraseña</label>
+              <input type="password" class="form-control" name="contrasena" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label"><i class="bi bi-building me-1"></i>Departamento</label>
+              <select class="form-select" name="departamento" id="modalDepartamento" required>
+                <option value="TI">TI</option>
+                <option value="Ventas">Ventas</option>
+                <option value="Recursos Humanos">Recursos Humanos</option>
+                <option value="Finanzas">Finanzas</option>
+                <option value="Operaciones">Operaciones</option>
+                <option value="Marketing">Marketing</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label"><i class="bi bi-shield me-1"></i>Rol</label>
+              <select class="form-select" name="rol" id="modalRol" required>
+                <option value="admin">Administrador</option>
+                <option value="empleado">Empleado</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="bi bi-x-circle me-1"></i>Cancelar
+          </button>
+          <button type="submit" class="btn-primary-custom">
+            <i class="bi bi-save me-1"></i>Guardar Cambios
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ MODAL REGISTRAR SUCURSAL ══════ -->
+<div class="modal fade" id="modalRegistrarSucursal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="barra-modal"></div>
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-geo-alt-fill me-2" style="color:#1d9e75;"></i>Nueva Sucursal</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form action="/web/sucursal/registrar" method="post">
+        <div class="modal-body">
+          <label class="form-label"><i class="bi bi-geo-alt me-1"></i>Nombre de la Sucursal</label>
+          <input type="text" class="form-control" name="nombre" placeholder="Ej: Norte, Centro, Sur..." required>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="bi bi-x-circle me-1"></i>Cancelar
+          </button>
+          <button type="submit" class="btn-primary-custom">
+            <i class="bi bi-save me-1"></i>Guardar Sucursal
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ MODAL EDITAR SUCURSAL ══════ -->
+<div class="modal fade" id="modalEditarSucursal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="barra-modal"></div>
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-pencil-fill me-2" style="color:#2d7dd2;"></i>Editar Sucursal</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="formEditarSucursal" method="post">
+        <div class="modal-body">
+          <label class="form-label"><i class="bi bi-geo-alt me-1"></i>Nombre de la Sucursal</label>
+          <input type="text" class="form-control" name="nombre" id="modalSucursalNombre" required>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="bi bi-x-circle me-1"></i>Cancelar
+          </button>
+          <button type="submit" class="btn-primary-custom">
+            <i class="bi bi-save me-1"></i>Guardar Cambios
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ MODAL EDITAR ASISTENCIA ══════ -->
+<div class="modal fade" id="modalEditarAsistencia" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="barra-modal"></div>
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-pencil-fill me-2" style="color:#2d7dd2;"></i>Editar Registro de Asistencia</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="formEditarAsistencia" method="post">
+        <div class="modal-body">
+          <p class="mb-3" style="color:#7f93a8; font-size:0.82rem;">
+            <i class="bi bi-info-circle me-1"></i>Los cambios quedarán registrados en el log del sistema.
+          </p>
+          <h6 style="color:#2d7dd2; font-size:0.82rem; text-transform:uppercase; letter-spacing:0.06em;">Turno 1</h6>
+          <div class="row g-3 mb-3">
+            <div class="col-md-3">
+              <label class="form-label">Fecha Entrada</label>
+              <input type="date" class="form-control" name="fecha_entrada_1" id="ae_fe1">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Hora Entrada</label>
+              <input type="time" class="form-control" name="hora_entrada_1" id="ae_he1">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Fecha Salida</label>
+              <input type="date" class="form-control" name="fecha_salida_1" id="ae_fs1">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Hora Salida</label>
+              <input type="time" class="form-control" name="hora_salida_1" id="ae_hs1">
+            </div>
+          </div>
+          <h6 style="color:#2d7dd2; font-size:0.82rem; text-transform:uppercase; letter-spacing:0.06em;">Turno 2 (opcional)</h6>
+          <div class="row g-3 mb-3">
+            <div class="col-md-3">
+              <label class="form-label">Fecha Entrada</label>
+              <input type="date" class="form-control" name="fecha_entrada_2" id="ae_fe2">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Hora Entrada</label>
+              <input type="time" class="form-control" name="hora_entrada_2" id="ae_he2">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Fecha Salida</label>
+              <input type="date" class="form-control" name="fecha_salida_2" id="ae_fs2">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Hora Salida</label>
+              <input type="time" class="form-control" name="hora_salida_2" id="ae_hs2">
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label"><i class="bi bi-geo-alt me-1"></i>Sucursal</label>
+            <select class="form-select" name="sucursal_id" id="ae_sucursal">
+              <option value="">Sin sucursal</option>
+              {% for suc in sucursales if suc.activo %}
+              <option value="{{ suc.id }}">{{ suc.nombre }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="bi bi-x-circle me-1"></i>Cancelar
+          </button>
+          <button type="submit" class="btn-primary-custom">
+            <i class="bi bi-save me-1"></i>Guardar Cambios
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ MODAL HISTORIAL LOGS ══════ -->
+<div class="modal fade" id="modalHistorial" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="barra-modal"></div>
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-clock-history me-2" style="color:#ef9f27;"></i>Historial de Cambios</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="contenidoHistorial">
+        <div class="text-center py-3" style="color:#4d6070;">
+          <i class="bi bi-hourglass-split"></i> Cargando...
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const hoy = new Date(); hoy.setHours(0,0,0,0);
+
+function fechaEsFutura(valor) {
+  if (!valor) return false;
+  const f = new Date(valor); f.setHours(0,0,0,0);
+  return f > hoy;
+}
+
+function mostrarErrorAsistencia(msg) {
+  let el = document.getElementById('errorAsistencia');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'errorAsistencia';
+    el.style.cssText = 'background:rgba(226,75,74,0.1);border:1px solid rgba(226,75,74,0.3);border-radius:8px;color:#e24b4a;font-size:0.82rem;padding:0.6rem 0.9rem;margin-bottom:1rem;';
+    document.getElementById('formEditarAsistencia').querySelector('.modal-body').prepend(el);
+  }
+  el.innerHTML = msg ? '<i class="bi bi-exclamation-circle me-1"></i>' + msg : '';
+  el.style.display = msg ? 'block' : 'none';
+}
+
+// ── Empleados ──
+function abrirModalEditar(cedula, nombre, apellido, email, departamento, rol) {
+  document.getElementById('modalCedula').value = cedula;
+  document.getElementById('modalNombre').value = nombre;
+  document.getElementById('modalApellido').value = apellido;
+  document.getElementById('modalEmail').value = email;
+  document.getElementById('modalDepartamento').value = departamento;
+  document.getElementById('modalRol').value = rol;
+  document.getElementById('formEditar').action = '/web/empleado/editar/' + cedula;
+  new bootstrap.Modal(document.getElementById('modalEditar')).show();
+}
+
+// ── Sucursales ──
+function abrirModalEditarSucursal(id, nombre) {
+  document.getElementById('modalSucursalNombre').value = nombre;
+  document.getElementById('formEditarSucursal').action = '/web/sucursal/editar/' + id;
+  new bootstrap.Modal(document.getElementById('modalEditarSucursal')).show();
+}
+
+// ── Asistencia ──
+function abrirModalEditarAsistencia(id, fe1, he1, fs1, hs1, fe2, he2, fs2, hs2, sucId) {
+  document.getElementById('ae_fe1').value = fe1;
+  document.getElementById('ae_he1').value = he1;
+  document.getElementById('ae_fs1').value = fs1;
+  document.getElementById('ae_hs1').value = hs1;
+  document.getElementById('ae_fe2').value = fe2;
+  document.getElementById('ae_he2').value = he2;
+  document.getElementById('ae_fs2').value = fs2;
+  document.getElementById('ae_hs2').value = hs2;
+  if (sucId) document.getElementById('ae_sucursal').value = sucId;
+  document.getElementById('formEditarAsistencia').action = '/web/asistencia/editar/' + id;
+  mostrarErrorAsistencia('');
+  new bootstrap.Modal(document.getElementById('modalEditarAsistencia')).show();
+}
+
+// Validación al enviar el formulario de asistencia
+document.getElementById('formEditarAsistencia').addEventListener('submit', function(e) {
+  const fe1 = document.getElementById('ae_fe1').value;
+  const fs1 = document.getElementById('ae_fs1').value;
+  const fe2 = document.getElementById('ae_fe2').value;
+  const fs2 = document.getElementById('ae_fs2').value;
+
+  // Verificar fechas futuras
+  if (fechaEsFutura(fe1)) { e.preventDefault(); mostrarErrorAsistencia('La fecha de entrada del Turno 1 no puede ser futura.'); return; }
+  if (fechaEsFutura(fs1)) { e.preventDefault(); mostrarErrorAsistencia('La fecha de salida del Turno 1 no puede ser futura.'); return; }
+  if (fechaEsFutura(fe2)) { e.preventDefault(); mostrarErrorAsistencia('La fecha de entrada del Turno 2 no puede ser futura.'); return; }
+  if (fechaEsFutura(fs2)) { e.preventDefault(); mostrarErrorAsistencia('La fecha de salida del Turno 2 no puede ser futura.'); return; }
+
+  // Verificar Turno 1
+  if (fe1 && fs1) {
+    if (fs1 < fe1) { e.preventDefault(); mostrarErrorAsistencia('La fecha de salida del Turno 1 no puede ser anterior a la de entrada.'); return; }
+    if (fs1 === fe1) {
+      const he1 = document.getElementById('ae_he1').value;
+      const hs1 = document.getElementById('ae_hs1').value;
+      if (he1 && hs1 && hs1 <= he1) { e.preventDefault(); mostrarErrorAsistencia('Si la salida del Turno 1 es el mismo día, la hora de salida debe ser mayor a la de entrada.'); return; }
+    }
+  }
+
+  // Verificar Turno 2
+  if (fe2 && fs2) {
+    if (fs2 < fe2) { e.preventDefault(); mostrarErrorAsistencia('La fecha de salida del Turno 2 no puede ser anterior a la de entrada.'); return; }
+    if (fs2 === fe2) {
+      const he2 = document.getElementById('ae_he2').value;
+      const hs2 = document.getElementById('ae_hs2').value;
+      if (he2 && hs2 && hs2 <= he2) { e.preventDefault(); mostrarErrorAsistencia('Si la salida del Turno 2 es el mismo día, la hora de salida debe ser mayor a la de entrada.'); return; }
+    }
+  }
+
+  // Verificar que Turno 2 no se solape con Turno 1
+  if (fe2 && fs1) {
+    if (fe2 < fs1) { e.preventDefault(); mostrarErrorAsistencia('La entrada del Turno 2 no puede ser anterior a la salida del Turno 1.'); return; }
+    if (fe2 === fs1) {
+      const hs1 = document.getElementById('ae_hs1').value;
+      const he2 = document.getElementById('ae_he2').value;
+      if (hs1 && he2 && he2 <= hs1) { e.preventDefault(); mostrarErrorAsistencia('Si el Turno 2 empieza el mismo día que termina el Turno 1, la hora de entrada del Turno 2 debe ser posterior a la hora de salida del Turno 1.'); return; }
+    }
+  }
+
+  mostrarErrorAsistencia('');
+});
+
+// ── Historial logs ──
+async function verHistorial(id) {
+  document.getElementById('contenidoHistorial').innerHTML =
+    '<div class="text-center py-3" style="color:#4d6070;"><i class="bi bi-hourglass-split"></i> Cargando...</div>';
+  new bootstrap.Modal(document.getElementById('modalHistorial')).show();
+  try {
+    const res  = await fetch('/api/asistencia/historial/' + id);
+    const logs = await res.json();
+    if (!logs.length) {
+      document.getElementById('contenidoHistorial').innerHTML =
+        '<div class="text-center py-3" style="color:#4d6070;"><i class="bi bi-inbox"></i> Sin cambios registrados.</div>';
+      return;
+    }
+    document.getElementById('contenidoHistorial').innerHTML = logs.map(l => `
+      <div class="log-item">
+        <div class="d-flex justify-content-between align-items-start">
+          <span class="log-accion"><i class="bi bi-pencil-square me-1"></i>${l.accion}</span>
+          <span class="log-fecha">${l.fecha_hora}</span>
+        </div>
+        <div class="log-detalle">${l.detalle || '—'}</div>
+        <div class="log-fecha mt-1"><i class="bi bi-person me-1"></i>${l.cedula_empleado}</div>
+      </div>
+    `).join('');
+  } catch {
+    document.getElementById('contenidoHistorial').innerHTML =
+      '<div class="text-center py-3" style="color:#e24b4a;">Error al cargar el historial.</div>';
+  }
+}
+
+// ── Buscadores ──
+document.getElementById('buscadorCedula').addEventListener('keyup', function () {
+  const filtro = this.value.toLowerCase();
+  document.querySelectorAll('#tablaEmpleados tbody tr').forEach(fila => {
+    fila.style.display = fila.cells[0].textContent.toLowerCase().includes(filtro) ? '' : 'none';
+  });
+});
+
+document.getElementById('buscadorAsistencia').addEventListener('keyup', function () {
+  const filtro = this.value.toLowerCase();
+  document.querySelectorAll('#tablaAsistencia tbody tr').forEach(fila => {
+    fila.style.display = fila.cells[1].textContent.toLowerCase().includes(filtro) ? '' : 'none';
+  });
+});
+</script>
+
+{% endblock %}
